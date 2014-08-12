@@ -1,0 +1,7 @@
+{
+    "name": "maxim-max11210",
+    "version": "0.0.1",
+    "author": "Radko Bankras <radko@bankras.net>",
+    "license": "MIT",
+    "description": "Library for SPI control of the Maxim MAX11210 24-bit ADC"
+}
