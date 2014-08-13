@@ -2,7 +2,7 @@ About
 ===
 
 This library has been written to support the Maxim MAX11210 24-bit A/D converter
-as peripheral of the Spark module. Spark Libraries can be used in the [Spark IDE
+as peripheral of the Spark module. Spark libraries can be used in the [Spark IDE
 ](https://www.spark.io/build).
 
 Example Usage
@@ -15,15 +15,17 @@ example for [measuring the temperature](http://docs.spark.io/examples/#measuring
 #include "maxim-max11210.h"
 
 int sensor1 = 0;
-long temperature1 = 0;
-long sensor2 = 0;
-long temperature2 = 0;
+double temperature1 = 0.0;
+double sensor2 = 0;
+double temperature2 = 0.0;
 
 // Declare the peripheral A/D converter as type Max11210 from the Maxim namespace
 Maxim::Max11210 adcMax11210;
 
 void setup() {
+  Spark.variable("Sensor1", &sensor1, INT);
   Spark.variable("Temp1", &temperature1, DOUBLE);
+  Spark.variable("Sensor2", &sensor2, DOUBLE);
   Spark.variable("Temp2", &temperature2, DOUBLE);
   pinMode(A7, INPUT);
   adcMax11210.begin();
@@ -32,6 +34,10 @@ void setup() {
 void loop() {
   sensor1 = analogRead(A7);
   sensor2 = adcMax11210.read();
+  
+  // TMP36: 0.5 V offset voltage, 10 mV/degC, 750 mV at 25 degC
+  // 12-bit A/D for sensor 1: (2^12 - 1) = 4095 steps
+  // 24-bit A/D for sensor 2: (2^24 - 1) = 1677215 steps 
   temperature1 = (3.3 * sensor1 / 4095.0 - 0.5) * 100.0;
   temperature2 = (3.3 * sensor2 / 16777215.0 - 0.5) * 100.0;
 }
@@ -85,7 +91,9 @@ Recommended Components
 ===
 
 [Maxim MAX11210](http://datasheets.maximintegrated.com/en/ds/MAX11200-MAX11210.pdf)
+
 [Analog Devices TMP36](http://www.analog.com/static/imported-files/data_sheets/TMP35_36_37.pdf)
+
 [Adafruit TSSOP-16 breakout PCB](http://www.adafruit.com/products/1207)
 
 Circuit Diagram
