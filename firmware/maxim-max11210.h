@@ -1,15 +1,7 @@
 #ifndef _MAXIM_MAX11210
   #define _MAXIM_MAX11210
 
-  // Make library cross-compatiable
-  // with Arduino, GNU C++ for tests, and Spark.
-  #if defined(ARDUINO) && ARDUINO >= 100
-    #include "Arduino.h"
-  #elif defined(SPARK)
-    #include "application.h"
-  #endif
-  
-  //#include "application.h"
+  #include "application.h"
   
   // MAX11210 8-bit Command unsigned char
   // ------------------------------------------------------------------------
@@ -100,8 +92,6 @@
   namespace Maxim {
     class Max11210 {
       private:
-        int _SS;
-        
         unsigned char _readReg8(unsigned char addr);
         long _readReg24(unsigned char addr);
         void _writeReg8(unsigned char addr, unsigned char data);
