@@ -94,6 +94,6 @@ Circuit Diagram
 See the schematic and breadboard view below are an example of combining the 
 Spark module with the ADC and a temperature sensor. 
 
-![Breadboard](bankrasrg.github.com/maxim-max11210/doc/breadboard_dual-tmp36.png)
+![Breadboard](doc/breadboard_dual-tmp36.png)
 
 A schematic and breadboard view of how to wire up components with the library.
