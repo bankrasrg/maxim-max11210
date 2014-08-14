@@ -1,6 +1,6 @@
 #ifndef _MAXIM_MAX11210
   #define _MAXIM_MAX11210
-
+  
   #include "application.h"
   
   // MAX11210 8-bit Command unsigned char

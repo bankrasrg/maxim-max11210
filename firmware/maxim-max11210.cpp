@@ -6,18 +6,15 @@ Maxim::Max11210::Max11210() {
 }
 
 void Maxim::Max11210::begin() {
-  pinMode(SS, OUTPUT);
-  digitalWrite(SS, HIGH);
-  
   // The Spark Core system clock is 72 MHz, while the MAX11210 SPI runs at 5 MHz maximum.
   // Setting the SPI clock divider to 16x results in a SCLK of 4.5 MHz.
   SPI.begin();
   SPI.setBitOrder(MSBFIRST);
-  SPI.setClockDivider(SPI_CLOCK_DIV16);
+  SPI.setClockDivider(SPI_CLOCK_DIV64);
   SPI.setDataMode(SPI_MODE0);
 
   // Set default configuration of the ADC via CMD MODE 0
-  setRate(MAX11210_RATE10);
+  setRate(MAX11210_RATE1);
   
   // Set default configuration of the ADC in register CTRL1
   //setLineFreq(MAX11210_50HZ);
@@ -49,6 +46,8 @@ void Maxim::Max11210::begin() {
   _writeReg8(CTRL3, 0b00011000);
  
   selfCal();
+  
+  getReady();
 }
 
 void Maxim::Max11210::end() {
@@ -105,8 +104,7 @@ void Maxim::Max11210::_sendCmd(unsigned char data) {
 
 long Maxim::Max11210::read() {
   unsigned char addr = DATA;
-  unsigned char mesg = ((addr & 0x0F) << 1) | START | MODE | READ;
-  long resp = _readReg24(mesg);
+  long resp = _readReg24(addr);
   return resp;
 }
 
