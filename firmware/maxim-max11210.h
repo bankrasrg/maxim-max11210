@@ -92,6 +92,8 @@
   namespace Maxim {
     class Max11210 {
       private:
+        unsigned char _rate;
+        bool _sCycle;
         unsigned char _readReg8(unsigned char addr);
         long _readReg24(unsigned char addr);
         void _writeReg8(unsigned char addr, unsigned char data);

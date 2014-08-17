@@ -6,16 +6,21 @@ Maxim::Max11210::Max11210() {
 }
 
 void Maxim::Max11210::begin() {
+  // The firmware (spark_wiring.cpp) does not allow monitoring of MISO using digitalRead().
+  // The MISO if therefore also connected to a digital input of the Spark Core.
+  pinMode(D0, INPUT);
+    
   // The Spark Core system clock is 72 MHz, while the MAX11210 SPI runs at 5 MHz maximum.
   // Setting the SPI clock divider to 16x results in a SCLK of 4.5 MHz.
   SPI.begin();
   SPI.setBitOrder(MSBFIRST);
-  SPI.setClockDivider(SPI_CLOCK_DIV64);
+  SPI.setClockDivider(SPI_CLOCK_DIV16);
   SPI.setDataMode(SPI_MODE0);
 
-  // Set default configuration of the ADC via CMD MODE 0
-  setRate(MAX11210_RATE1);
-  
+  // Initiate conversions
+  _rate = MAX11210_RATE10;
+  setRate(_rate); // 0x83
+
   // Set default configuration of the ADC in register CTRL1
   //setLineFreq(MAX11210_50HZ);
   //setInputRange(MAX11210_UNIPOLAR);
@@ -24,18 +29,19 @@ void Maxim::Max11210::begin() {
   //setEnableSigBuf(false);
   //setFormat(MAX11210_2SCOMPL)
   //setConvMode(MAX11210_CONT);
-  _writeReg8(CTRL1, 0b11000000);
+  _writeReg8(CTRL1, 0b11000000); // 0xC2 0xC0
+  _sCycle = false;
 
   // Set default configuration of the ADC in register CTRL2
   //pinModeGpio(0, OUTPUT);
   //pinModeGpio(1, OUTPUT);
   //pinModeGpio(2, OUTPUT);
   //pinModeGpio(3, OUTPUT);
-  //digitalWriteGpio(0, LOW);
+  //digitalWriteGpio(0, HIGH);
   //digitalWriteGpio(1, LOW);
-  //digitalWriteGpio(2, LOW);
+  //digitalWriteGpio(2, HIGH);
   //digitalWriteGpio(3, LOW);
-  _writeReg8(CTRL2, 0b11110000);
+  _writeReg8(CTRL2, 0b11110101); // 0xC4 0xF5
   
   // Set default configuration of the ADC in register CTRL3
   //setGain(MAX11210_GAIN1);
@@ -43,11 +49,28 @@ void Maxim::Max11210::begin() {
   //setDisableSysOffset(true);
   //setDisableSelfCalGain(false);
   //setDisableSelfCalOffset(false);
-  _writeReg8(CTRL3, 0b00011000);
- 
-  selfCal();
+  _writeReg8(CTRL3, 0b00011000); // 0xC6 0x18
+  selfCal(); // 0x90
+
+  // System level calibration should only be performed when zero-scale and full-scale signals can be presented to the ADC.
+  //setDisableSysOffset(false);
+  //sysOffsetCal();
+  //setDisableSysGain(false);
+  //sysGainCal();
+
+  getSysGainCal();
+  getSysOffsetCal();
+  getSelfCalGain();        
+  getSelfCalOffset();
+
+  // What is wrong with the self-calibration? The gain is 0.
+  setDisableSelfCalGain(true);
+  setDisableSelfCalOffset(true);
+
+  // Initiate conversions
+  _rate = MAX11210_RATE10;
+  setRate(_rate); // 0x83
   
-  getReady();
 }
 
 void Maxim::Max11210::end() {
@@ -103,6 +126,10 @@ void Maxim::Max11210::_sendCmd(unsigned char data) {
 }
 
 long Maxim::Max11210::read() {
+  digitalWrite(SS, LOW);
+  do {
+    delayMicroseconds(1);  
+  } while (digitalRead(D0) == LOW);
   unsigned char addr = DATA;
   long resp = _readReg24(addr);
   return resp;
@@ -124,6 +151,7 @@ void Maxim::Max11210::sysGainCal() {
 }
 
 void Maxim::Max11210::setRate(unsigned char rate) {
+  _rate = rate;
   _sendCmd(rate & 0x07);
 }
 
@@ -247,10 +275,12 @@ void Maxim::Max11210::setConvMode(unsigned char value) {
   unsigned char data = 0x00;
   unsigned char stat = _readReg8(addr);
   if (value == MAX11210_SINGLE) {
+    _sCycle = true;
     data = (stat | SCYCLE);
     _writeReg8(addr, data);
   }  
   else if (value == MAX11210_CONT) {
+    _sCycle = false;
     data = (stat & ~SCYCLE);
     _writeReg8(addr, data);
   }

@@ -5,6 +5,15 @@ This library has been written to support the Maxim MAX11210 24-bit A/D converter
 as peripheral of the Spark module. Spark libraries can be used in the [Spark IDE
 ](https://www.spark.io/build).
 
+Status
+===
+
+Debugging is ongoing. The self-calibration of the ADC seems to result in a value
+0 in the SCGC register, which will make it impossible to get valid data out.
+With disabled self-calibration registers, values are read from the data register.
+A work-around has been implemented for the SPI safety in the firmware of the
+Spark Core, which prevents reading the MISO to detect completion of a conversion.
+
 Example Usage
 ===
 
